@@ -60,12 +60,15 @@ src/
 - ✅ 公開藝廊（作品列表、詳情頁、藝術家頁）
 - ✅ Google OAuth 登入 + Zustand 狀態管理
 - ✅ 管理儀表板（白名單保護）
-- ✅ 作品上傳（Canvas 多尺寸：480px / 768px / 原始）→ GCS
+- ✅ 作品上傳（Canvas 多尺寸：480px / 768px / 原始）→ GCS，WebP 格式
 - ✅ 作品管理（編輯、刪除、標籤）
 - ✅ 藝術家管理（頭像/封面上傳 → Firebase Storage）
 - ✅ 管理員白名單（Firestore admins 集合）
 - ✅ Firestore 安全規則（公開讀 / 認證寫）
 - ✅ Docker 多階段構建 + Google Cloud Build + Cloud Run 部署
+- ✅ 動態 SEO 元數據（og:image、twitter card、description）
+- ✅ 自訂網域 https://liting-art.paulfun.net（Cloud Run domain mapping）
+- ✅ Seed 作品 2 件（Luminous Oracle、Celestial Reverie）
 
 ---
 
@@ -75,8 +78,6 @@ src/
 
 - [ ] **藝廊搜尋 / 篩選** — 依標籤、藝術家、年份篩選作品
 - [ ] **分頁 / 無限滾動** — 目前一次載入全部作品，量大時需分頁
-- [x] **SEO 元數據** — 每頁缺少動態 `<meta>` description / og:image
-- [x] **圖片格式** — 上傳時轉換為 WebP 以節省頻寬
 
 ### 中優先
 
@@ -129,6 +130,12 @@ NEXT_PUBLIC_GCS_PUBLIC_URL=       # CDN 公開網址前綴
 
 **平台**：Google Cloud Run（via Cloud Build）
 
+- **正式網址**：https://liting-art.paulfun.net
+- **Cloud Run URL**：https://art-gallery-7jry7awz3a-de.a.run.app
+- **Region**：asia-east1
+- **Project**：liting-art-gallery
+- **DNS**：Cloudflare CNAME `liting-art` → `ghs.googlehosted.com`（DNS only，不開 Proxy）
+
 ```bash
 # 手動觸發 Cloud Build
 gcloud builds submit --config cloudbuild.yaml
@@ -138,7 +145,7 @@ docker build -t art-gallery .
 docker run -p 3000:3000 --env-file .env.local art-gallery
 ```
 
-**備用**：`vercel.json` 已配置，可直接 `vercel deploy`
+**CI/CD**：push to `main` → GitHub Actions → Cloud Build → Cloud Run 自動部署
 
 ---
 
@@ -151,5 +158,6 @@ docker run -p 3000:3000 --env-file .env.local art-gallery
 
 ---
 
-**版本**：0.1.0
+**版本**：0.2.0
 **建立日期**：2026-02-18
+**最後更新**：2026-02-18
