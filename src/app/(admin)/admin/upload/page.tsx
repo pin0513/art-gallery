@@ -1,7 +1,5 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { storage } from '@/lib/firebase';
 import { createArtwork } from '@/lib/firestore/artworks';
 import { getArtists } from '@/lib/firestore/artists';
 import type { ArtworkFormData } from '@/types/artwork';
@@ -35,22 +33,28 @@ async function resizeImage(file: File, maxWidth: number): Promise<Blob> {
   });
 }
 
-// Upload a Blob to Firebase Storage path, call onProgress(0..100), return download URL
-async function uploadBlob(
-  blob: Blob,
-  path: string,
+// Upload all 3 blobs via Next.js API route → GCS
+async function uploadAllToGCS(
+  blobPhone: Blob,
+  blobPad: Blob,
+  blobOriginal: Blob,
   onProgress: (pct: number) => void
-): Promise<string> {
-  const storageRef = ref(storage, path);
-  const task = uploadBytesResumable(storageRef, blob, { contentType: 'image/jpeg' });
-  return new Promise((resolve, reject) => {
-    task.on(
-      'state_changed',
-      (snap) => onProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)),
-      reject,
-      async () => { resolve(await getDownloadURL(task.snapshot.ref)); }
-    );
-  });
+): Promise<{ imageUrl: string; imageUrlPad: string; imageUrlPhone: string }> {
+  const formData = new FormData();
+  formData.append('timestamp', Date.now().toString());
+  formData.append('phone', new File([blobPhone], 'phone.jpg', { type: 'image/jpeg' }));
+  formData.append('pad', new File([blobPad], 'pad.jpg', { type: 'image/jpeg' }));
+  formData.append('original', new File([blobOriginal], 'original.jpg', { type: 'image/jpeg' }));
+
+  onProgress(10);
+  const res = await fetch('/api/upload', { method: 'POST', body: formData });
+  onProgress(90);
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({ error: 'Upload failed' }));
+    throw new Error(error);
+  }
+  onProgress(100);
+  return res.json();
 }
 
 export default function UploadArtworkPage() {
@@ -111,28 +115,21 @@ export default function UploadArtworkPage() {
     setProgress([0, 0, 0]);
 
     try {
-      const timestamp = Date.now();
-      const base = `artworks/${timestamp}`;
-
       // Resize all 3 sizes in parallel
+      setProgress([5, 5, 5]);
       const [blobPhone, blobPad, blobOriginal] = await Promise.all([
         resizeImage(file, 480),
         resizeImage(file, 768),
         resizeImage(file, 9999), // effectively original size
       ]);
+      setProgress([20, 20, 20]);
 
-      // Upload sequentially with per-size progress
-      const imageUrlPhone = await uploadBlob(
-        blobPhone, `${base}/phone.jpg`,
-        (pct) => setProgress((p) => [pct, p[1], p[2]])
-      );
-      const imageUrlPad = await uploadBlob(
-        blobPad, `${base}/pad.jpg`,
-        (pct) => setProgress((p) => [100, pct, p[2]])
-      );
-      const imageUrl = await uploadBlob(
-        blobOriginal, `${base}/original.jpg`,
-        (pct) => setProgress((p) => [100, 100, pct])
+      // Upload all to GCS via API route
+      const { imageUrl, imageUrlPad, imageUrlPhone } = await uploadAllToGCS(
+        blobPhone,
+        blobPad,
+        blobOriginal,
+        (pct) => setProgress([pct, pct, pct])
       );
 
       await createArtwork({
