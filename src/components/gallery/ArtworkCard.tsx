@@ -14,6 +14,8 @@ export default function ArtworkCard({ artwork, artistName }: ArtworkCardProps) {
   const [hovered, setHovered] = useState(false);
 
   const label = artistName || 'Liting Art Gallery';
+  // Use phone-size image for list cards (smaller, faster), fall back to imageUrl
+  const cardImageUrl = artwork.imageUrlPhone || artwork.imageUrl;
 
   return (
     <Link
@@ -60,7 +62,7 @@ export default function ArtworkCard({ artwork, artistName }: ArtworkCardProps) {
           )}
           {artwork.imageUrl ? (
             <Image
-              src={artwork.imageUrl}
+              src={cardImageUrl}
               alt={artwork.title}
               width={600}
               height={400}

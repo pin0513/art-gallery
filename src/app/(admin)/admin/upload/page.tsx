@@ -1,12 +1,57 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
 import { createArtwork } from '@/lib/firestore/artworks';
 import { getArtists } from '@/lib/firestore/artists';
 import type { ArtworkFormData } from '@/types/artwork';
 import type { Artist } from '@/types/artist';
-import { useEffect } from 'react';
+
+// ─────────────────────────────────────────────
+// Helper: resize image with Canvas API
+// Returns a JPEG Blob at given maxWidth (keeps ratio, skips if already smaller)
+// ─────────────────────────────────────────────
+async function resizeImage(file: File, maxWidth: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const ratio = img.width > maxWidth ? maxWidth / img.width : 1;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { reject(new Error('Canvas not supported')); return; }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => { if (blob) resolve(blob); else reject(new Error('Canvas toBlob failed')); },
+        'image/jpeg',
+        0.85
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
+    img.src = url;
+  });
+}
+
+// Upload a Blob to Firebase Storage path, call onProgress(0..100), return download URL
+async function uploadBlob(
+  blob: Blob,
+  path: string,
+  onProgress: (pct: number) => void
+): Promise<string> {
+  const storageRef = ref(storage, path);
+  const task = uploadBytesResumable(storageRef, blob, { contentType: 'image/jpeg' });
+  return new Promise((resolve, reject) => {
+    task.on(
+      'state_changed',
+      (snap) => onProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)),
+      reject,
+      async () => { resolve(await getDownloadURL(task.snapshot.ref)); }
+    );
+  });
+}
 
 export default function UploadArtworkPage() {
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -23,7 +68,8 @@ export default function UploadArtworkPage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
+  // Per-size progress: [phone, pad, original]
+  const [progress, setProgress] = useState<[number, number, number]>([0, 0, 0]);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -62,34 +108,45 @@ export default function UploadArtworkPage() {
     setUploading(true);
     setError(null);
     setSuccess(false);
+    setProgress([0, 0, 0]);
 
     try {
       const timestamp = Date.now();
-      const filename = `artworks/${timestamp}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-      const storageRef = ref(storage, filename);
-      const uploadTask = uploadBytesResumable(storageRef, file);
+      const base = `artworks/${timestamp}`;
 
-      const imageUrl = await new Promise<string>((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-            setProgress(pct);
-          },
-          reject,
-          async () => {
-            const url = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve(url);
-          }
-        );
+      // Resize all 3 sizes in parallel
+      const [blobPhone, blobPad, blobOriginal] = await Promise.all([
+        resizeImage(file, 480),
+        resizeImage(file, 768),
+        resizeImage(file, 9999), // effectively original size
+      ]);
+
+      // Upload sequentially with per-size progress
+      const imageUrlPhone = await uploadBlob(
+        blobPhone, `${base}/phone.jpg`,
+        (pct) => setProgress((p) => [pct, p[1], p[2]])
+      );
+      const imageUrlPad = await uploadBlob(
+        blobPad, `${base}/pad.jpg`,
+        (pct) => setProgress((p) => [100, pct, p[2]])
+      );
+      const imageUrl = await uploadBlob(
+        blobOriginal, `${base}/original.jpg`,
+        (pct) => setProgress((p) => [100, 100, pct])
+      );
+
+      await createArtwork({
+        ...form,
+        imageUrl,
+        imageUrlPad,
+        imageUrlPhone,
+        thumbnailUrl: imageUrlPhone, // use phone size as thumbnail
       });
-
-      await createArtwork({ ...form, imageUrl, thumbnailUrl: imageUrl });
 
       setSuccess(true);
       setFile(null);
       setPreview(null);
-      setProgress(0);
+      setProgress([0, 0, 0]);
       setForm({
         title: '',
         description: '',
@@ -106,6 +163,10 @@ export default function UploadArtworkPage() {
       setUploading(false);
     }
   };
+
+  const overallProgress = uploading
+    ? Math.round((progress[0] + progress[1] + progress[2]) / 3)
+    : 0;
 
   const inputStyle: React.CSSProperties = {
     width: '100%',
@@ -129,6 +190,20 @@ export default function UploadArtworkPage() {
     marginBottom: '0.5rem',
   };
 
+  const sizeBarLabel = (label: string, pct: number) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem' }}>
+      <span style={{ width: '3.5rem', fontSize: '0.65rem', color: '#7a7469', fontFamily: 'Inter, sans-serif', flexShrink: 0 }}>
+        {label}
+      </span>
+      <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', height: '3px', borderRadius: '2px', overflow: 'hidden' }}>
+        <div style={{ height: '100%', background: '#c9b89a', width: `${pct}%`, transition: 'width 0.3s ease', borderRadius: '2px' }} />
+      </div>
+      <span style={{ width: '2.5rem', fontSize: '0.65rem', color: '#7a7469', fontFamily: 'Inter, sans-serif', textAlign: 'right' }}>
+        {pct}%
+      </span>
+    </div>
+  );
+
   return (
     <div>
       <div style={{ marginBottom: '2.5rem' }}>
@@ -141,11 +216,14 @@ export default function UploadArtworkPage() {
         <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '3rem', fontWeight: 300, color: '#f0ece3', lineHeight: 1 }}>
           Upload Artwork
         </h1>
+        <p style={{ marginTop: '0.75rem', color: '#7a7469', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif' }}>
+          Auto-generates Phone (480px), Pad (768px) &amp; Original sizes.
+        </p>
       </div>
 
       {success && (
         <div style={{ background: 'rgba(201,184,154,0.1)', border: '1px solid rgba(201,184,154,0.3)', padding: '1rem 1.5rem', marginBottom: '2rem', color: '#c9b89a', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif' }}>
-          Artwork uploaded successfully!
+          Artwork uploaded successfully — 3 sizes stored.
         </div>
       )}
 
@@ -157,18 +235,11 @@ export default function UploadArtworkPage() {
 
       <form onSubmit={handleSubmit} style={{ maxWidth: '700px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem 3rem' }}>
-          {/* Left column */}
+          {/* Image picker */}
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={labelStyle}>Artwork Image *</label>
             <div
-              style={{
-                border: '1px dashed rgba(255,255,255,0.1)',
-                padding: '2rem',
-                textAlign: 'center',
-                cursor: 'pointer',
-                background: '#0a0a0a',
-                transition: 'border-color 0.2s',
-              }}
+              style={{ border: '1px dashed rgba(255,255,255,0.1)', padding: '2rem', textAlign: 'center', cursor: 'pointer', background: '#0a0a0a', transition: 'border-color 0.2s' }}
               onClick={() => fileRef.current?.click()}
               onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(201,184,154,0.3)'; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.1)'; }}
@@ -185,6 +256,7 @@ export default function UploadArtworkPage() {
             <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
           </div>
 
+          {/* Title */}
           <div>
             <label style={labelStyle}>Title *</label>
             <input
@@ -198,6 +270,7 @@ export default function UploadArtworkPage() {
             />
           </div>
 
+          {/* Year */}
           <div>
             <label style={labelStyle}>Year</label>
             <input
@@ -212,6 +285,7 @@ export default function UploadArtworkPage() {
             />
           </div>
 
+          {/* Description */}
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={labelStyle}>Description</label>
             <textarea
@@ -224,6 +298,7 @@ export default function UploadArtworkPage() {
             />
           </div>
 
+          {/* Artist */}
           <div>
             <label style={labelStyle}>Artist</label>
             <select
@@ -240,6 +315,7 @@ export default function UploadArtworkPage() {
             </select>
           </div>
 
+          {/* Order */}
           <div>
             <label style={labelStyle}>Display Order</label>
             <input
@@ -253,6 +329,7 @@ export default function UploadArtworkPage() {
             />
           </div>
 
+          {/* Tags */}
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={labelStyle}>Tags</label>
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
@@ -285,6 +362,7 @@ export default function UploadArtworkPage() {
             )}
           </div>
 
+          {/* Featured */}
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
               <input
@@ -299,17 +377,19 @@ export default function UploadArtworkPage() {
             </label>
           </div>
 
+          {/* Progress bars (per size) */}
           {uploading && (
             <div style={{ gridColumn: '1 / -1' }}>
-              <div style={{ background: 'rgba(255,255,255,0.04)', height: '4px', borderRadius: '2px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', background: '#c9b89a', width: `${progress}%`, transition: 'width 0.3s ease', borderRadius: '2px' }} />
-              </div>
-              <p style={{ color: '#7a7469', fontSize: '0.75rem', marginTop: '0.5rem', fontFamily: 'Inter, sans-serif' }}>
-                Uploading... {progress}%
+              <p style={{ color: '#7a7469', fontSize: '0.7rem', fontFamily: 'Inter, sans-serif', marginBottom: '0.75rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                Uploading… {overallProgress}%
               </p>
+              {sizeBarLabel('Phone', progress[0])}
+              {sizeBarLabel('Pad', progress[1])}
+              {sizeBarLabel('Original', progress[2])}
             </div>
           )}
 
+          {/* Submit */}
           <div style={{ gridColumn: '1 / -1' }}>
             <button
               type="submit"
@@ -327,14 +407,10 @@ export default function UploadArtworkPage() {
                 transition: 'all 0.2s ease',
                 opacity: uploading ? 0.6 : 1,
               }}
-              onMouseEnter={(e) => {
-                if (!uploading) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(201,184,154,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                if (!uploading) (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-              }}
+              onMouseEnter={(e) => { if (!uploading) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(201,184,154,0.1)'; }}
+              onMouseLeave={(e) => { if (!uploading) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
             >
-              {uploading ? 'Uploading...' : 'Upload Artwork'}
+              {uploading ? `Uploading… ${overallProgress}%` : 'Upload Artwork'}
             </button>
           </div>
         </div>

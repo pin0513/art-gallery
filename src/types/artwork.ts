@@ -2,7 +2,9 @@ export interface Artwork {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
+  imageUrl: string;       // desktop / original
+  imageUrlPad?: string;   // tablet ≤ 768px
+  imageUrlPhone?: string; // phone ≤ 480px
   thumbnailUrl: string;
   artistId: string;
   tags: string[];

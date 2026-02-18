@@ -54,7 +54,12 @@ export const getArtwork = async (id: string): Promise<Artwork | null> => {
 };
 
 export const createArtwork = async (
-  data: ArtworkFormData & { imageUrl: string; thumbnailUrl: string }
+  data: ArtworkFormData & {
+    imageUrl: string;
+    thumbnailUrl: string;
+    imageUrlPad?: string;
+    imageUrlPhone?: string;
+  }
 ): Promise<string> => {
   const docRef = await addDoc(collection(db, COLLECTION), {
     ...data,
