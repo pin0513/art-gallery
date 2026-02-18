@@ -1,8 +1,12 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   images: {
-    domains: ['firebasestorage.googleapis.com', 'lh3.googleusercontent.com'],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'firebasestorage.googleapis.com' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+    ],
   },
 };
 
