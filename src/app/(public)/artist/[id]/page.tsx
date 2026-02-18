@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -7,6 +8,36 @@ import ArtworkGrid from '@/components/gallery/ArtworkGrid';
 
 interface ArtistPageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: ArtistPageProps): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const artist = await getArtist(id);
+    if (!artist) return {};
+    const description = artist.bio
+      ? artist.bio.slice(0, 160)
+      : `探索 ${artist.name} 的藝術作品 — LITING Art 立庭藝廊`;
+    return {
+      title: artist.name,
+      description,
+      openGraph: {
+        title: `${artist.name} | LITING Art`,
+        description,
+        type: 'profile',
+        url: `/artist/${id}`,
+        images: artist.avatarUrl ? [{ url: artist.avatarUrl, alt: artist.name }] : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${artist.name} | LITING Art`,
+        description,
+        images: artist.avatarUrl ? [artist.avatarUrl] : [],
+      },
+    };
+  } catch {
+    return {};
+  }
 }
 
 export default async function ArtistPage({ params }: ArtistPageProps) {

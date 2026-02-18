@@ -1,10 +1,17 @@
+import type { Metadata } from 'next';
 import ArtworkGrid from '@/components/gallery/ArtworkGrid';
 import { getArtworks } from '@/lib/firestore/artworks';
 import { getArtists } from '@/lib/firestore/artists';
 
-export const metadata = {
-  title: 'Gallery | Art Gallery',
-  description: 'Browse our complete collection of artworks',
+export const metadata: Metadata = {
+  title: '藝廊典藏',
+  description: '瀏覽 LITING Art 立庭藝廊的完整典藏作品，涵蓋當代與古典各風格藝術創作。',
+  openGraph: {
+    title: '藝廊典藏 | LITING Art',
+    description: '瀏覽 LITING Art 立庭藝廊的完整典藏作品，涵蓋當代與古典各風格藝術創作。',
+    type: 'website',
+    url: '/gallery',
+  },
 };
 
 export default async function GalleryPage() {
