@@ -13,6 +13,8 @@ export default function ArtworkCard({ artwork, artistName }: ArtworkCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [hovered, setHovered] = useState(false);
 
+  const label = artistName || 'Liting Art Gallery';
+
   return (
     <Link
       href={`/gallery/${artwork.id}`}
@@ -38,8 +40,12 @@ export default function ArtworkCard({ artwork, artistName }: ArtworkCardProps) {
             : '0 4px 20px rgba(0,0,0,0.3)',
         }}
       >
-        {/* Image Container */}
-        <div style={{ position: 'relative', overflow: 'hidden', background: '#0a0a0a' }}>
+        {/* Image Container with watermark protection */}
+        <div
+          style={{ position: 'relative', overflow: 'hidden', background: '#0a0a0a' }}
+          onContextMenu={(e) => e.preventDefault()}
+          onDragStart={(e) => e.preventDefault()}
+        >
           {!imageLoaded && (
             <div
               style={{
@@ -58,6 +64,7 @@ export default function ArtworkCard({ artwork, artistName }: ArtworkCardProps) {
               alt={artwork.title}
               width={600}
               height={400}
+              draggable={false}
               style={{
                 width: '100%',
                 height: 'auto',
@@ -65,6 +72,8 @@ export default function ArtworkCard({ artwork, artistName }: ArtworkCardProps) {
                 opacity: imageLoaded ? 1 : 0,
                 transition: 'opacity 0.5s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
                 transform: hovered ? 'scale(1.04)' : 'scale(1)',
+                pointerEvents: 'none',
+                userSelect: 'none',
               }}
               onLoad={() => setImageLoaded(true)}
             />
@@ -85,6 +94,40 @@ export default function ArtworkCard({ artwork, artistName }: ArtworkCardProps) {
             </div>
           )}
 
+          {/* Watermark overlay layer */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              userSelect: 'none',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Diagonal watermark tiles */}
+            {Array.from({ length: 12 }).map((_, i) => (
+              <span
+                key={i}
+                style={{
+                  position: 'absolute',
+                  left: `${(i % 3) * 34 - 5}%`,
+                  top: `${Math.floor(i / 3) * 28 - 5}%`,
+                  transform: 'rotate(-30deg)',
+                  fontSize: '0.6rem',
+                  letterSpacing: '0.18em',
+                  color: 'rgba(201,184,154,0.12)',
+                  fontFamily: 'Inter, sans-serif',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                  fontWeight: 500,
+                }}
+              >
+                © {label}
+              </span>
+            ))}
+          </div>
+
           {/* Year Badge */}
           <div
             style={{
@@ -99,6 +142,7 @@ export default function ArtworkCard({ artwork, artistName }: ArtworkCardProps) {
               letterSpacing: '0.1em',
               color: '#c9b89a',
               fontFamily: 'Inter, sans-serif',
+              pointerEvents: 'none',
             }}
           >
             {artwork.year}
@@ -112,6 +156,7 @@ export default function ArtworkCard({ artwork, artistName }: ArtworkCardProps) {
               background: 'linear-gradient(to top, rgba(5,5,5,0.8) 0%, transparent 50%)',
               opacity: hovered ? 1 : 0,
               transition: 'opacity 0.3s ease',
+              pointerEvents: 'none',
             }}
           />
         </div>

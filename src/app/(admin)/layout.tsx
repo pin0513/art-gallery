@@ -112,6 +112,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {[
             { href: '/admin', label: 'Dashboard' },
             { href: '/admin/upload', label: 'Upload Artwork' },
+            { href: '/admin/artworks', label: 'Manage Artworks' },
             { href: '/admin/artist', label: 'Manage Artists' },
             { href: '/admin/whitelist', label: 'Whitelist' },
           ].map(({ href, label }) => (

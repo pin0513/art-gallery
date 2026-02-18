@@ -72,19 +72,57 @@ export default function ArtworkPage({ params }: ArtworkPageProps) {
                 overflow: 'hidden',
                 background: '#111',
               }}
+              onContextMenu={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
             >
               {artwork.imageUrl ? (
-                <Image
-                  src={artwork.imageUrl}
-                  alt={artwork.title}
-                  width={800}
-                  height={1000}
-                  style={{
-                    width: '100%',
-                    height: 'auto',
-                    display: 'block',
-                  }}
-                />
+                <>
+                  <Image
+                    src={artwork.imageUrl}
+                    alt={artwork.title}
+                    width={800}
+                    height={1000}
+                    draggable={false}
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      display: 'block',
+                      pointerEvents: 'none',
+                      userSelect: 'none',
+                    }}
+                  />
+                  {/* Watermark overlay */}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      pointerEvents: 'none',
+                      userSelect: 'none',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {Array.from({ length: 20 }).map((_, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          position: 'absolute',
+                          left: `${(i % 4) * 26 - 5}%`,
+                          top: `${Math.floor(i / 4) * 22 - 3}%`,
+                          transform: 'rotate(-30deg)',
+                          fontSize: '0.55rem',
+                          letterSpacing: '0.18em',
+                          color: 'rgba(201,184,154,0.1)',
+                          fontFamily: 'Inter, sans-serif',
+                          textTransform: 'uppercase',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        © {artist?.name ?? 'Liting Art Gallery'}
+                      </span>
+                    ))}
+                  </div>
+                </>
               ) : (
                 <div
                   style={{
@@ -137,7 +175,7 @@ export default function ArtworkPage({ params }: ArtworkPageProps) {
 
             {artist && (
               <Link
-                href={`/artists/${artist.id}`}
+                href={`/artist/${artist.id}`}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
