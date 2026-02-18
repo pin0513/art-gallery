@@ -7,7 +7,7 @@ import type { Artist } from '@/types/artist';
 
 // ─────────────────────────────────────────────
 // Helper: resize image with Canvas API
-// Returns a JPEG Blob at given maxWidth (keeps ratio, skips if already smaller)
+// Returns a WebP Blob at given maxWidth (keeps ratio, skips if already smaller)
 // ─────────────────────────────────────────────
 async function resizeImage(file: File, maxWidth: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -24,7 +24,7 @@ async function resizeImage(file: File, maxWidth: number): Promise<Blob> {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       canvas.toBlob(
         (blob) => { if (blob) resolve(blob); else reject(new Error('Canvas toBlob failed')); },
-        'image/jpeg',
+        'image/webp',
         0.85
       );
     };
@@ -42,9 +42,9 @@ async function uploadAllToGCS(
 ): Promise<{ imageUrl: string; imageUrlPad: string; imageUrlPhone: string }> {
   const formData = new FormData();
   formData.append('timestamp', Date.now().toString());
-  formData.append('phone', new File([blobPhone], 'phone.jpg', { type: 'image/jpeg' }));
-  formData.append('pad', new File([blobPad], 'pad.jpg', { type: 'image/jpeg' }));
-  formData.append('original', new File([blobOriginal], 'original.jpg', { type: 'image/jpeg' }));
+  formData.append('phone', new File([blobPhone], 'phone.webp', { type: 'image/webp' }));
+  formData.append('pad', new File([blobPad], 'pad.webp', { type: 'image/webp' }));
+  formData.append('original', new File([blobOriginal], 'original.webp', { type: 'image/webp' }));
 
   onProgress(10);
   const res = await fetch('/api/upload', { method: 'POST', body: formData });

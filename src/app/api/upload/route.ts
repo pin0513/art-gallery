@@ -11,7 +11,7 @@ const bucket = storage.bucket(BUCKET_NAME);
 async function uploadBuffer(buffer: Buffer, destPath: string): Promise<string> {
   const file = bucket.file(destPath);
   await file.save(buffer, {
-    contentType: 'image/jpeg',
+    contentType: 'image/webp',
     metadata: { cacheControl: 'public, max-age=31536000' },
   });
   return `${PUBLIC_BASE}/${destPath}`;
@@ -38,9 +38,9 @@ export async function POST(req: NextRequest) {
     ]);
 
     const [imageUrlPhone, imageUrlPad, imageUrl] = await Promise.all([
-      uploadBuffer(phoneBuf, `${base}/phone.jpg`),
-      uploadBuffer(padBuf, `${base}/pad.jpg`),
-      uploadBuffer(originalBuf, `${base}/original.jpg`),
+      uploadBuffer(phoneBuf, `${base}/phone.webp`),
+      uploadBuffer(padBuf, `${base}/pad.webp`),
+      uploadBuffer(originalBuf, `${base}/original.webp`),
     ]);
 
     return NextResponse.json({ imageUrl, imageUrlPad, imageUrlPhone });
