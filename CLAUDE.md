@@ -12,17 +12,35 @@
 
 ## 技術棧
 
-| 層面 | 技術 |
-|------|------|
-| Framework | Next.js 16.1.6 (App Router) |
-| UI | React 19 + Tailwind CSS 4 |
-| 狀態管理 | Zustand 5 |
-| 動畫 | Framer Motion 12 |
-| 認證 | Firebase Auth (Google OAuth) |
-| 資料庫 | Firestore |
-| 圖片儲存 | Google Cloud Storage (作品) + Firebase Storage (頭像) |
-| 語言 | TypeScript 5 |
-| 套件管理 | pnpm |
+### 前端
+
+| 層面 | 技術 | 版本 |
+|------|------|------|
+| Framework | Next.js App Router | 16.1.6 |
+| UI Runtime | React | 19.2.3 |
+| 樣式 | Tailwind CSS v4 + PostCSS | ^4.1.18 |
+| 動畫 | Framer Motion | ^12 |
+| 狀態管理 | Zustand | ^5 |
+| Icon | Lucide React | ^0.574 |
+| 工具 | clsx、next-themes | latest |
+| 語言 | TypeScript | ^5 |
+| 套件管理 | pnpm | - |
+
+### 後端 / 雲端服務
+
+| 層面 | 技術 | 說明 |
+|------|------|------|
+| 認證 | Firebase Auth | Google OAuth，白名單 + 受邀 email 自動升級 |
+| 資料庫 | Firestore | 作品、藝術家、管理員、受邀名單 |
+| 圖片儲存（作品） | Google Cloud Storage | bucket: `liting-art-gallery-images`，三尺寸 WebP |
+| 圖片儲存（頭像） | Firebase Storage | 藝術家頭像 / 封面 |
+| 上傳 API | Next.js API Route `/api/upload` | 伺服器端用 `@google-cloud/storage` ^7 寫入 GCS |
+| 容器化 | Docker（Node 22 Alpine，multi-stage） | standalone 輸出 |
+| CI/CD | GitHub Actions → Google Cloud Build | push to `main` 自動觸發 |
+| 執行環境 | Google Cloud Run | asia-east1，附加 service account |
+| Image Registry | Artifact Registry | `asia-east1-docker.pkg.dev/liting-art-gallery/art-gallery/app` |
+| 自訂網域 | Cloud Run Domain Mapping | `liting-art.paulfun.net` |
+| DNS | Cloudflare | CNAME DNS only → `ghs.googlehosted.com` |
 
 ---
 
