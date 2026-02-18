@@ -4,7 +4,7 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'asia-east1-docker.pkg.dev/$PROJECT_ID/art-gallery/app:$COMMIT_SHA'
+      - 'asia-east1-docker.pkg.dev/$PROJECT_ID/art-gallery/app:${_TAG}'
       - '-t'
       - 'asia-east1-docker.pkg.dev/$PROJECT_ID/art-gallery/app:latest'
       - '--build-arg'
@@ -35,7 +35,7 @@ steps:
       - 'run'
       - 'deploy'
       - 'art-gallery'
-      - '--image=asia-east1-docker.pkg.dev/$PROJECT_ID/art-gallery/app:$COMMIT_SHA'
+      - '--image=asia-east1-docker.pkg.dev/$PROJECT_ID/art-gallery/app:${_TAG}'
       - '--region=asia-east1'
       - '--platform=managed'
       - '--allow-unauthenticated'
@@ -47,10 +47,11 @@ steps:
       - '--set-env-vars=NEXT_PUBLIC_FIREBASE_API_KEY=${_FIREBASE_API_KEY},NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${_FIREBASE_AUTH_DOMAIN},NEXT_PUBLIC_FIREBASE_PROJECT_ID=${_FIREBASE_PROJECT_ID},NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${_FIREBASE_STORAGE_BUCKET},NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${_FIREBASE_MESSAGING_SENDER_ID},NEXT_PUBLIC_FIREBASE_APP_ID=${_FIREBASE_APP_ID}'
 
 images:
-  - 'asia-east1-docker.pkg.dev/$PROJECT_ID/art-gallery/app:$COMMIT_SHA'
+  - 'asia-east1-docker.pkg.dev/$PROJECT_ID/art-gallery/app:${_TAG}'
   - 'asia-east1-docker.pkg.dev/$PROJECT_ID/art-gallery/app:latest'
 
 substitutions:
+  _TAG: 'latest'
   _FIREBASE_API_KEY: ''
   _FIREBASE_AUTH_DOMAIN: ''
   _FIREBASE_PROJECT_ID: ''
@@ -60,3 +61,4 @@ substitutions:
 
 options:
   logging: CLOUD_LOGGING_ONLY
+  substitutionOption: 'ALLOW_LOOSE'
