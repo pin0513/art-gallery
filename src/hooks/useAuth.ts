@@ -11,7 +11,7 @@ export function useAuth() {
     const unsubscribe = onAuthChange(async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        const adminStatus = await checkIsAdmin(firebaseUser.uid);
+        const adminStatus = await checkIsAdmin(firebaseUser.uid, firebaseUser.email ?? undefined);
         setIsAdmin(adminStatus);
       } else {
         setIsAdmin(false);
