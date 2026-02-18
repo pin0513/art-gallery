@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
-const title = 'Art Gallery';
+const title = 'LITING Art';
 const subtitle = '探索藝術的深邃之美';
 
 export default function HeroSection() {

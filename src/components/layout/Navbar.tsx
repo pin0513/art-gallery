@@ -60,7 +60,7 @@ export default function Navbar() {
             textTransform: 'uppercase',
           }}
         >
-          Art Gallery
+          LITING Art
         </Link>
 
         {/* Desktop Navigation */}

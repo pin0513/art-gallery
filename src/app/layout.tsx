@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Art Gallery | 藝術畫廊',
-  description: '探索藝術的深邃之美 — A curated collection of contemporary and classical artworks',
+  title: 'LITING Art | 藝廊',
+  description: '探索藝術的深邃之美 — LITING Art, a curated collection of contemporary and classical artworks',
 };
 
 export default function RootLayout({

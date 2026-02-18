@@ -39,7 +39,7 @@ export default function Footer() {
               marginBottom: '0.75rem',
             }}
           >
-            Art Gallery
+            LITING Art
           </Link>
           <p style={{ color: '#7a7469', fontSize: '0.8rem', lineHeight: 1.7, maxWidth: '220px' }}>
             探索藝術的深邃之美，發現當代與古典藝術的精髓。
@@ -87,7 +87,7 @@ export default function Footer() {
         {/* Copyright */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
           <p style={{ color: '#7a7469', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
-            &copy; {currentYear} Art Gallery. All rights reserved.
+            &copy; {currentYear} LITING Art. All rights reserved.
           </p>
         </div>
       </div>
