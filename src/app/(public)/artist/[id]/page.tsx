@@ -68,7 +68,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
           {/* Breadcrumb */}
           <nav style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <Link
-              href="/artists"
+              href="/artist"
               style={{
                 color: '#7a7469',
                 fontSize: '0.78rem',

@@ -205,7 +205,7 @@ export default function ArtistSpotlight({ artists }: ArtistSpotlightProps) {
           style={{ textAlign: 'center', marginTop: '4rem' }}
         >
           <Link
-            href="/artists"
+            href="/artist"
             style={{
               display: 'inline-block',
               padding: '0.85rem 3rem',

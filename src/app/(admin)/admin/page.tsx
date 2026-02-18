@@ -41,13 +41,13 @@ export default function AdminDashboard() {
 
   const statCards = [
     { label: 'Artworks', value: stats.artworks, href: '/gallery', action: 'View Gallery' },
-    { label: 'Artists', value: stats.artists, href: '/artists', action: 'View Artists' },
+    { label: 'Artists', value: stats.artists, href: '/artist', action: 'View Artists' },
     { label: 'Admins', value: stats.admins, href: '/admin/whitelist', action: 'Manage' },
   ];
 
   const quickActions = [
     { href: '/admin/upload', label: 'Upload Artwork', description: 'Add a new artwork to the collection' },
-    { href: '/admin/artists', label: 'Manage Artists', description: 'Add, edit, or remove artists' },
+    { href: '/admin/artist', label: 'Manage Artists', description: 'Add, edit, or remove artists' },
     { href: '/admin/whitelist', label: 'Whitelist', description: 'Manage admin access' },
   ];
 

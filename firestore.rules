@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 公開可讀：作品、藝術家
+    match /artworks/{id} {
+      allow read: if true;
+      allow write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    match /artists/{id} {
+      allow read: if true;
+      allow write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    // 白名單：只有管理員可讀寫
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+
+    function isAdmin(uid) {
+      return exists(/databases/$(database)/documents/admins/$(uid));
+    }
+  }
+}

@@ -64,7 +64,7 @@ export default function Footer() {
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {[
               { href: '/gallery', label: 'Gallery' },
-              { href: '/artists', label: 'Artists' },
+              { href: '/artist', label: 'Artists' },
             ].map(({ href, label }) => (
               <Link
                 key={href}

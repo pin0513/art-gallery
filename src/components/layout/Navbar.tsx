@@ -75,7 +75,7 @@ export default function Navbar() {
           <Link href="/gallery" style={navLinkStyle} className="nav-link">
             Gallery
           </Link>
-          <Link href="/artists" style={navLinkStyle} className="nav-link">
+          <Link href="/artist" style={navLinkStyle} className="nav-link">
             Artists
           </Link>
 
@@ -181,7 +181,7 @@ export default function Navbar() {
           }}
         >
           <Link href="/gallery" style={navLinkStyle} onClick={() => setMenuOpen(false)}>Gallery</Link>
-          <Link href="/artists" style={navLinkStyle} onClick={() => setMenuOpen(false)}>Artists</Link>
+          <Link href="/artist" style={navLinkStyle} onClick={() => setMenuOpen(false)}>Artists</Link>
           {user && isAdmin && (
             <Link href="/admin" style={{ ...navLinkStyle, color: '#c9b89a' }} onClick={() => setMenuOpen(false)}>Admin</Link>
           )}

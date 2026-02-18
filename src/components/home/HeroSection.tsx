@@ -192,7 +192,7 @@ export default function HeroSection() {
             Explore Gallery
           </Link>
           <Link
-            href="/artists"
+            href="/artist"
             style={{
               display: 'inline-block',
               padding: '0.85rem 2.5rem',
