@@ -3,6 +3,8 @@ import ArtworkGrid from '@/components/gallery/ArtworkGrid';
 import { getArtworks } from '@/lib/firestore/artworks';
 import { getArtists } from '@/lib/firestore/artists';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: '藝廊典藏',
   description: '瀏覽 LITING Art 立庭藝廊的完整典藏作品，涵蓋當代與古典各風格藝術創作。',

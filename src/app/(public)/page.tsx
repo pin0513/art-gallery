@@ -5,6 +5,8 @@ import ArtistSpotlight from '@/components/home/ArtistSpotlight';
 import { getFeaturedArtworks } from '@/lib/firestore/artworks';
 import { getFeaturedArtists } from '@/lib/firestore/artists';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'LITING Art | 立庭藝廊',
   description: '探索藝術的深邃之美 — LITING Art 立庭藝廊，精選當代與古典藝術作品的線上藝廊。',

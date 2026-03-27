@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { getArtwork } from '@/lib/firestore/artworks';
 import ArtworkPageClient from './ArtworkPageClient';
 
+export const dynamic = 'force-dynamic';
+
 interface ArtworkPageProps {
   params: Promise<{ id: string }>;
 }
