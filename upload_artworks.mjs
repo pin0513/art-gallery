@@ -2,14 +2,22 @@ import { initializeApp } from 'firebase/app';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFirestore, collection, addDoc, getDocs, query, Timestamp } from 'firebase/firestore';
 import { getAuth, signInWithCustomToken } from 'firebase/auth';
-import { readFileSync, execSync } from 'fs';
+import { readFileSync } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
+const apiKey = (process.env.FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '').trim();
+if (!apiKey) {
+  console.error(
+    'Missing Firebase API key. Set FIREBASE_API_KEY or NEXT_PUBLIC_FIREBASE_API_KEY before running this script. See .env.example.'
+  );
+  process.exit(1);
+}
+
 const firebaseConfig = {
-  apiKey: "AIzaSyAcA_4yYQym5sbB9F_58FJEPuhbAevq_eI",
+  apiKey,
   authDomain: "liting-art-gallery.firebaseapp.com",
   projectId: "liting-art-gallery",
   storageBucket: "liting-art-gallery.firebasestorage.app",
