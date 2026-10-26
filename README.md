@@ -20,6 +20,16 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Environment
+
+Copy `.env.example` to `.env.local` and fill in the Firebase web config. The Next.js app reads `NEXT_PUBLIC_FIREBASE_*` at build time (the Docker image receives them as build args).
+
+`upload_artworks.mjs` needs a Firebase web API key in the environment. It reads `FIREBASE_API_KEY`, and if that is unset it uses `NEXT_PUBLIC_FIREBASE_API_KEY`. The script exits with an error if neither is set. Do not commit a real key.
+
+```bash
+node --env-file=.env.local upload_artworks.mjs
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
